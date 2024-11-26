@@ -1,7 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-import studentRouter from './routes/studentRouter.js';
 import productsRouter from './routes/productsRouter.js';
 import userRouter from './routes/userRouter.js';
 
@@ -21,8 +20,7 @@ connection.once('open',()=>{
 // use bodyParser
 app.use(bodyParser.json())
 
-// use studentRouter
-app.use("/api/students",studentRouter)
+
 
 //use productRouter
 app.use("/api/products",productsRouter)

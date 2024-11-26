@@ -4,7 +4,6 @@ import mongoose from 'mongoose';
 import productsRouter from './routes/productsRouter.js';
 import userRouter from './routes/userRouter.js';
 
-
 const app = express();
 
 //Connect to MongoDB
@@ -17,8 +16,10 @@ connection.once('open',()=>{
     console.log("Database Connection succesfully")
 })
 
-// use bodyParser
+// use bodyParser -middleware
 app.use(bodyParser.json())
+
+// 
 
 
 

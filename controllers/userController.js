@@ -1,9 +1,12 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken"
+
 export function createUser(req, res) {
-    
+
     const newUserData = req.body;
 
+    // Hashing
     // Hash the password before saving
     newUserData.password = bcrypt.hashSync(newUserData.password, 10);
 
@@ -32,7 +35,21 @@ export function loginUser (req,res){
             }else{
                 const user = users[0]
                 if(bcrypt.compareSync(req.body.password, user.password)){
-                    res.json({message : "Logged in successfully"})
+                    //res.json({message : "Logged in successfully"})
+                    // Genarate Jwt token
+                    const token = jwt.sign({
+                        email :user.email,
+                        firstName :user.firstName,
+                        lastName : user.lastName,
+                        isBlocked : user.isBlocked,
+                        type: user.type,
+                        profilePicture : user.profilePicture
+
+                    }, "secret-key-5000")
+                    res.json({message : "Logged in successfully", token})
+                    
+
+
                 }else{
                     res.status(401).json({message : "Invalid password"})
                 }

@@ -15,8 +15,12 @@ export function getProduct(req, res) {
 }
 export function createProduct(req,res){
 
+   //console.log(req.user)
+
+
     const product = new Product(req.body)
-  
+
+   
     product.save().then(()=>{
       res.json({
         message: "Product created"

@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import productsRouter from './routes/productsRouter.js';
 import userRouter from './routes/userRouter.js';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 
@@ -19,7 +20,25 @@ connection.once('open',()=>{
 // use bodyParser -middleware
 app.use(bodyParser.json())
 
-// 
+// creating a middleware for accepting a jwt token and pass through
+app.use (
+    (req, res, next) => {
+        const token = req.header('Authorization')?.replace 
+        ("Bearer " ,"")
+
+        if(token != null){
+            jwt.verify(token, 'secret-key-5000', (err, decoded) => {
+                if(!err){
+                    //console.log(decoded)
+                    req.user = decoded
+                }
+                
+            })
+        }
+        next()
+
+        
+})
 
 
 

@@ -1,6 +1,9 @@
 import Product from "../models/products.js";
 
-export function getProduct(req, res) {
+
+// .then and .catch functions
+
+/*export function getProduct(req, res) {
   Product.find()
     .then((productList) => {
       res.status(200).json({
@@ -13,6 +16,27 @@ export function getProduct(req, res) {
       });
     });
 }
+ 
+*/
+
+
+// using an async function
+export async function getProduct(req, res) {
+  
+  try {
+    const productList = await Product.find()
+    res.json({
+      list: productList
+    })
+  }   catch (err) { 
+    res.json({
+      message: "Error"
+    })
+  }
+}
+
+
+
 export function createProduct(req, res) {
 
   console.log(req.user)
@@ -90,3 +114,4 @@ export function getProductByName(req, res) {
     })
   })
 }
+

@@ -4,11 +4,14 @@ import mongoose from 'mongoose';
 import productsRouter from './routes/productsRouter.js';
 import userRouter from './routes/userRouter.js';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 
 //Connect to MongoDB
-const mongoUrl ='mongodb+srv://root:root@mongodb.54m6q.mongodb.net/?retryWrites=true&w=majority&appName=MongoDB'
+const mongoUrl = process.env.MONGO_DB_URL
 
 mongoose.connect(mongoUrl,{})
 
@@ -27,7 +30,7 @@ app.use (
         ("Bearer " ,"")
 
         if(token != null){
-            jwt.verify(token, 'secret-key-5000', (err, decoded) => {
+            jwt.verify(token, (process.env.SECRET_KEY), (err, decoded) => {
                 if(!err){
                     //console.log(decoded)
                     req.user = decoded

@@ -7,6 +7,17 @@ export function createUser(req, res) {
 
     const newUserData = req.body;
 
+    //creating a block for "Only admin users can create admin users"
+
+     if (newUserData.type == "admin") {
+
+        if(req.user == null || req.user.type != "admin"){
+            const message = req.user == null ? "Unauthorized! Login as an admin to create an admin user" : "Unauthorized! Only admin users can create admin users";
+            res.json({message: message});
+            return;
+        }
+     }
+
     // Hashing
     // Hash the password before saving
     newUserData.password = bcrypt.hashSync(newUserData.password, 10);
@@ -61,3 +72,8 @@ export function loginUser (req,res){
     
 
 }
+
+   // admin  "email": "john.doe@example.com", "password": "securepassword123",
+   
+  // customer  "email": "john.doe2@example.com","password": "securepassword123",
+  

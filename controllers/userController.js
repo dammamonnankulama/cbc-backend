@@ -3,10 +3,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv";
 
-
-dotenv.config();
-
-
 export function createUser(req, res) {
 
     const newUserData = req.body;
@@ -76,20 +72,28 @@ export function loginUser (req,res){
     
 
 }
-export function isAdmin(req,res){
-    if(req.user == null || req.user.type != "admin"){
-        return false;
+export function isAdmin(req){
+    if(req.user==null){
+      return false
     }
-    return true;
-       
-}
-
-export function isCustomer(req,res){
-    if(req.user == null || req.user.type != "customer"){
-        return false;
+  
+    if(req.user.type != "admin"){
+      return false
     }
-    return true;
-       
-}
+  
+    return true
+  }
+  
+  export function isCustomer(req){
+    if(req.user==null){
+      return false
+    }
+  
+    if(req.user.type != "customer"){
+      return false
+    }
+  
+    return true
+  }
    
   

@@ -6,12 +6,10 @@ export function createProduct(req, res) {
     if (!isAdmin(req)) {
         res.json({ message: "Unauthorized user! Only admin users can create products" });
 
-
         return
 
     }
-
-
+    
     const newProductData = req.body;
 
     const product = new Product(newProductData);

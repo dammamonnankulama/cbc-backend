@@ -1,7 +1,11 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
-import dotenv from "dotenv"
+import dotenv from "dotenv";
+
+
+dotenv.config();
+
 
 export function createUser(req, res) {
 
@@ -47,7 +51,7 @@ export function loginUser (req,res){
             }else{
                 const user = users[0]
                 if(bcrypt.compareSync(req.body.password, user.password)){
-                    //res.json({message : "Logged in successfully"})
+                    
                     // Genarate Jwt token
                     const token = jwt.sign({
                         email :user.email,

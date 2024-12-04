@@ -72,8 +72,20 @@ export function loginUser (req,res){
     
 
 }
+export function isAdmin(req,res){
+    if(req.user == null || req.user.type != "admin"){
+        return false;
+    }
+    return true;
+       
+}
 
-   // admin  "email": "john.doe@example.com", "password": "securepassword123",
+export function isCustomer(req,res){
+    if(req.user == null || req.user.type != "customer"){
+        return false;
+    }
+    return true;
+       
+}
    
-  // customer  "email": "john.doe2@example.com","password": "securepassword123",
   

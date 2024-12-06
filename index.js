@@ -34,7 +34,7 @@ app.use (
             jwt.verify(token, (process.env.SECRET_KEY), (err, decoded) => {
                 if(!err){
                     console.log(decoded)
-                    req.user = decoded
+                    //req.user = decoded
                 }
                 
             })
@@ -52,6 +52,7 @@ app.use("/api/products",productRouter)
 //use userRouter
 app.use("/api/users",userRouter)
 
+//use orderRouter
 app.use("/api/orders",orderRouter)
 
 

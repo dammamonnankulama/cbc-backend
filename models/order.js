@@ -1,6 +1,6 @@
-import express from 'express';
+import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema({
+const orderSchema = mongoose.Schema({
 
     orderId : {
         type : String,

@@ -11,17 +11,28 @@ export async function createOrder(req, res) {
 
     try {
         // Fetch the latest order for order ID generation
-        const latestOrder = await Order.find().sort({ date: -1 }).limit(1);
-
         let orderId;
+        let latestOrder = await Order.find().sort({ date: -1 }).limit(1);
+
         if (latestOrder.length === 0) {
             orderId = "CBC0001";
         } else {
             const currentOrderId = latestOrder[0].orderId;
             const numberString = currentOrderId.replace("CBC", "");
             const number = parseInt(numberString, 10);
-            const newNumber = (number + 1).toString().padStart(4, "0");
+            let newNumber = (number + 1).toString().padStart(4, "0");
             orderId = "CBC" + newNumber;
+        }
+
+        // Ensure that the orderId doesn't already exist in the database
+        let orderExists = await Order.findOne({ orderId });
+        while (orderExists) {
+            // If the orderId exists, increment the number and check again
+            const currentOrderId = orderId.replace("CBC", "");
+            const number = parseInt(currentOrderId, 10);
+            let newNumber = (number + 1).toString().padStart(4, "0");
+            orderId = "CBC" + newNumber;
+            orderExists = await Order.findOne({ orderId });
         }
 
         // Prepare the new order data

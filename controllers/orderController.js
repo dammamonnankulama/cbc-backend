@@ -38,8 +38,14 @@ export async function createOrder(req, res) {
 
         // Prepare the new order data
         const newOrderData = req.body;
-        // new code 
+
+
+        
+        // new code  07,Dec
         const newProductArray = [];
+
+        /* function that processes an order by validating and transforming the ordered items. 
+        It starts by initializing an empty array called newProductArray, */
 
         for(let i = 0; i < newOrderData.orderedItems.length; i++){
             const product = await Product.findOne(
@@ -59,9 +65,10 @@ export async function createOrder(req, res) {
 
             }
         console.log(newProductArray)
+        
 
         newOrderData.orderedItems = newProductArray;
-        
+
         newOrderData.orderId = orderId;
         newOrderData.email = req.user.email;
 

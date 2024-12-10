@@ -36,13 +36,10 @@ export async function createOrder(req, res) {
             orderExists = await Order.findOne({ orderId });
         }
 
-
         // Prepare the new order data
         const newOrderData = req.body;
 
-
-
-        // new code  07,Dec
+        // Initialize an empty array to store the new products
         const newProductArray = [];
 
         /* function that processes an order by validating and transforming the ordered items. 
@@ -68,23 +65,25 @@ export async function createOrder(req, res) {
             product.stock -= orderedQuantity;
             await product.save();
 
-            /*Use push when adding to newProductArray because it ensures a clean and sequential 
-            array of products without any gaps.*/
-            
-            newProductArray.push({
-                name: product.productName,
-                price: product.price,
-                quantity: orderedQuantity,
-                image: product.productImages[0],
-            });
+            // // Check if the stock is below the lowStockAlert
+            if (product.stock < product.lowStockAlert) {
+                // Send an email to the admin
+                console.log(`Product ${product.productName} is below the low stock alert.`);
 
-
+                /* Use push when adding to newProductArray because it ensures a clean and sequential 
+                array of products without any gaps. */
+                newProductArray.push({
+                    name: product.productName,
+                    price: product.price,
+                    quantity: orderedQuantity,
+                    image: product.productImages[0],
+                });
+            }
         }
-        console.log(newProductArray)
 
+        console.log(newProductArray);
 
         newOrderData.orderedItems = newProductArray;
-
         newOrderData.orderId = orderId;
         newOrderData.email = req.user.email;
 

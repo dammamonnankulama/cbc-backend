@@ -39,6 +39,11 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    lowStockAlert: {
+        type: Number,
+        default: 20
+    }
+
 })
 
 const Product = mongoose.model("products", productSchema);

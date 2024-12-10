@@ -36,36 +36,52 @@ export async function createOrder(req, res) {
             orderExists = await Order.findOne({ orderId });
         }
 
+
         // Prepare the new order data
         const newOrderData = req.body;
 
 
-        
+
         // new code  07,Dec
         const newProductArray = [];
 
         /* function that processes an order by validating and transforming the ordered items. 
         It starts by initializing an empty array called newProductArray, */
 
-        for(let i = 0; i < newOrderData.orderedItems.length; i++){
+        for (let i = 0; i < newOrderData.orderedItems.length; i++) {
             const product = await Product.findOne(
-                {productId : newOrderData.orderedItems[i].productId})
-                if(product === null){
-                    res.status(404).json({message : "Product with id " +newOrderData.orderedItems[i].productId+" not found"})
-                    return;
-                }
-
-                newProductArray[i] = {
-                    name : product.productName,
-                    price : product.price,
-                    quantity : newOrderData.orderedItems[i].quantity,
-                    image : product.productImages[0],
-                }
-
-
+                { productId: newOrderData.orderedItems[i].productId })
+            if (!product) {
+                return res.status(404).json({
+                    message: `Product with id ${newOrderData.orderedItems[i].productId} not found.`,
+                });
             }
+            //code for check the product Stock
+            const orderedQuantity = newOrderData.orderedItems[i].quantity;
+
+            if (product.stock < orderedQuantity) {
+                return res.status(400).json({
+                    message: `Product ${product.productName} is out of stock.`,
+                });
+            }
+            // Update the stock of the product
+            product.stock -= orderedQuantity;
+            await product.save();
+
+            /*Use push when adding to newProductArray because it ensures a clean and sequential 
+            array of products without any gaps.*/
+            
+            newProductArray.push({
+                name: product.productName,
+                price: product.price,
+                quantity: orderedQuantity,
+                image: product.productImages[0],
+            });
+
+
+        }
         console.log(newProductArray)
-        
+
 
         newOrderData.orderedItems = newProductArray;
 

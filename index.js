@@ -6,10 +6,17 @@ import productRouter from './routes/productRouter.js';
 import orderRouter from './routes/orderRouter.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
 const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:5173', // Allow requests from this origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow these HTTP methods
+    credentials: true // Allow cookies to be sent with requests
+  }));
 
 //Connect to MongoDB
 const mongoUrl = process.env.MONGO_DB_URL

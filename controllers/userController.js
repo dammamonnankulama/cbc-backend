@@ -40,36 +40,51 @@ export function createUser(req, res) {
 }
 
 export function loginUser (req,res){
-    User.find({email :req.body.email}).then(
-        users => {
-            if(users.length == 0){
-                res.status(404).json({message : "User not found"})
-            }else{
-                const user = users[0]
-                if(bcrypt.compareSync(req.body.password, user.password)){
-                    
-                    // Genarate Jwt token
-                    const token = jwt.sign({
-                        email :user.email,
-                        firstName :user.firstName,
-                        lastName : user.lastName,
-                        isBlocked : user.isBlocked,
-                        type: user.type,
-                        profilePicture : user.profilePicture
+    const { email, password } = req.body;
 
-                    }, (process.env.SECRET_KEY),)
-                    res.json({message : "Logged in successfully", token})
-                    
-
-
-                }else{
-                    res.status(401).json({message : "Invalid password"})
-                }
+    User.findOne({ email: email })
+        .then(user => {
+            if (!user) {
+                // Avoid exposing whether the issue is email or password
+                return res.status(401).json({ message: "Invalid email or password" });
             }
-        }
-        
-    )
-    
+
+            // Check password
+            const isPasswordValid = bcrypt.compareSync(password, user.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({ message: "Invalid email or password" });
+            }
+
+            // Generate JWT token
+            const token = jwt.sign(
+                {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    isBlocked: user.isBlocked,
+                    type: user.type,
+                    profilePicture: user.profilePicture
+                },
+                process.env.SECRET_KEY,
+                { expiresIn: '1h' }
+            );
+
+            return res.json({
+                 message: "Logged in successfully",
+                token: token,
+                user  : {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    type: user.type,
+                    profilePicture: user.profilePicture
+                }
+                });
+        })
+        .catch(err => {
+            console.error("Error during login:", err); // Log the error for debugging
+            res.status(500).json({ message: "Internal server error", error: err.message });
+        });
 
 }
 export function isAdmin(req) {

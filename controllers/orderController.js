@@ -11,13 +11,13 @@ export async function createOrder(req, res) {
     }
 
     try {
-        // Fetch the latest order for order ID generation
+        // Fetch the latest orderfor order ID generation
         let orderId;
         let latestOrder = await Order.find().sort({ date: -1 }).limit(1);
 
         if (latestOrder.length === 0) {
             orderId = "CBC0001";
-        } else {
+        } else { 
             const currentOrderId = latestOrder[0].orderId;
             const numberString = currentOrderId.replace("CBC", "");
             const number = parseInt(numberString, 10);

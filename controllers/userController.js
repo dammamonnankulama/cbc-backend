@@ -54,6 +54,8 @@ export function loginUser (req,res){
             if (!isPasswordValid) {
                 return res.status(401).json({ message: "Invalid email or password" });
             }
+            
+
 
             // Generate JWT token
             const token = jwt.sign(
@@ -82,9 +84,9 @@ export function loginUser (req,res){
                 });
         })
         .catch(err => {
-            console.error("Error during login:", err); // Log the error for debugging
-            res.status(500).json({ message: "Internal server error", error: err.message });
-        });
+            console.error("Error in login:", err);
+            res.status(500).json({ message: "Internal server error" });
+          });
 
 }
 export function isAdmin(req) {

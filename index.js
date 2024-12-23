@@ -13,10 +13,10 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Allow requests from this origin
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow these HTTP methods
     credentials: true // Allow cookies to be sent with requests
-  }));
+}));
 
 //Connect to MongoDB
 const mongoUrl = process.env.MONGO_DB_URL
@@ -32,24 +32,21 @@ connection.once('open',()=>{
 app.use(bodyParser.json())
 
 // creating a middleware for accepting a jwt token and pass through
-app.use (
-    (req, res, next) => {
-        const token = req.header('Authorization')?.replace 
-        ("Bearer " ,"")
+app.use((req, res, next) => {
+    const token = req.header('Authorization')?.replace("Bearer ", "");
 
-        if(token != null){
-            jwt.verify(token, (process.env.SECRET_KEY), (err, decoded) => {
-                if(!err){
-                    console.log(decoded)
-                    req.user = decoded
-                }
-                
-            })
-        }
-        next()
-
-        
-})
+    if (token) {
+        jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+            if (err) {
+                console.error("JWT Verification Error:", err.message);
+            } else {
+                console.log("JWT Decoded:", decoded);
+                req.user = decoded;
+            }
+        });
+    }
+    next();
+});
 
 
 

@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv";
 
+dotenv.config();
+
 export function createUser(req, res) {
 
     const newUserData = req.body;
@@ -50,43 +52,47 @@ export function loginUser (req,res){
             }
 
             // Check password
-            const isPasswordValid = bcrypt.compareSync(password, user.password);
-            if (!isPasswordValid) {
-                return res.status(401).json({ message: "Invalid email or password" });
-            }
-            
-
-
-            // Generate JWT token
-            const token = jwt.sign(
-                {
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    isBlocked: user.isBlocked,
-                    type: user.type,
-                    profilePicture: user.profilePicture
-                },
-                process.env.SECRET_KEY,
-                { expiresIn: '1h' }
-            );
-
-            return res.json({
-                 message: "Logged in successfully",
-                token: token,
-                user  : {
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    type: user.type,
-                    profilePicture: user.profilePicture
+            bcrypt.compare(password, user.password, (err, isPasswordValid) => {
+                if (err) {
+                    console.error("Error in password comparison:", err);
+                    return res.status(500).json({ message: "Internal server error" });
                 }
+
+                if (!isPasswordValid) {
+                    return res.status(401).json({ message: "Invalid email or password" });
+                }
+
+                // Generate JWT token
+                const token = jwt.sign(
+                    {
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        isBlocked: user.isBlocked,
+                        type: user.type,
+                        profilePicture: user.profilePicture
+                    },
+                    process.env.SECRET_KEY,
+                    { expiresIn: '1h' }
+                );
+
+                return res.json({
+                    message: "Logged in successfully",
+                    token: token,
+                    user: {
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        type: user.type,
+                        profilePicture: user.profilePicture
+                    }
                 });
+            });
         })
         .catch(err => {
             console.error("Error in login:", err);
             res.status(500).json({ message: "Internal server error" });
-          });
+        });
 
 }
 export function isAdmin(req) {

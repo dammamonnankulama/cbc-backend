@@ -38,7 +38,7 @@ export function deleteProduct(req, res) {
         res.status(403).json({ message: "Unauthorized user! Only admin users can delete products" })
         return
     }
-    const productId = req.body.productId;
+    const productId = req.params.productId;
     Product.deleteOne(
         {productId: productId}
     ).then(()=>{

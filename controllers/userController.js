@@ -95,6 +95,13 @@ export function loginUser (req,res){
         });
 
 }
+export function getUsers(req, res) {
+    User.find().then(
+        users => {
+            res.json(users);
+        }
+    )
+}
 export function isAdmin(req) {
     return req.user?.type === "admin";
   }

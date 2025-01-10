@@ -1,3 +1,4 @@
+import { response } from "express";
 import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
 
@@ -63,4 +64,17 @@ export function updateProduct(req, res) {
     }).catch((err)=>{
         res.json({message: "Failed to update product", error: err.message});
     });
+}
+
+export async function getProductById(req, res) {
+    
+    try{
+        const productId = req.params.productId;
+    const product = await Product .findOne({productId : productId});
+    res.json(product);
+        
+    } catch (error) {
+        res.status(500).json({message: "Product not found", error: error.message});
+    }
+    
 }

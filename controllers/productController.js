@@ -47,3 +47,20 @@ export function deleteProduct(req, res) {
         res.json({message: "Failed to delete product", error: err.message});
     });
 }
+
+export function updateProduct(req, res) {
+    if (!isAdmin(req)) {
+        res.status(403).json({ message: "Unauthorized user! Only admin users can update products" })
+        return
+    }
+    const productId = req.params.productId;
+    const updatedProductData = req.body;
+    Product.updateOne(
+        {productId: productId},
+        updatedProductData
+    ).then(()=>{
+        res.json({message: "Product updated successfully"});
+    }).catch((err)=>{
+        res.json({message: "Failed to update product", error: err.message});
+    });
+}

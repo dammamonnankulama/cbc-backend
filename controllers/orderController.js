@@ -1,6 +1,6 @@
 import Order from "../models/order.js";
 import Product from "../models/product.js";
-import { isCustomer } from "./userController.js";
+import { isAdmin, isCustomer } from "./userController.js";
 
 export async function createOrder(req, res) {
   // Check if the user is a customer
@@ -92,12 +92,15 @@ export async function createOrder(req, res) {
 
     // Save the new order
     const order = new Order(newOrderData);
-    await order.save();
+
+
+    const savedOrder =await order.save();
 
     // Respond with success message
     return res.status(201).json({
       message: "Order created successfully.",
       orderId,
+      order: savedOrder,
     });
   } catch (error) {
     // Catch and respond with any error
@@ -109,17 +112,41 @@ export async function createOrder(req, res) {
 }
 
 export async function getOrders(req, res) {
+  
   try {
-    // Fetch orders associated with the logged-in user's email
+   
+   if (isCustomer(req)) {
+      // Fetch orders associated with the logged-in user's email
     const orders = await Order.find({ email: req.user.email });
 
     if (!orders || orders.length === 0) {
-      return res.status(404).json({
+      return res.status(404).json({ 
         message: "No orders found for the user.",
       });
     }
 
     return res.status(200).json(orders);
+    }
+    else if(isAdmin(req))
+      {
+        const orders = await Order.find();
+
+        if (!orders || orders.length === 0) {
+          return res.status(404).json({ 
+            message: "No orders found.",
+          });
+        }
+    
+        return res.status(200).json(orders);
+
+    }
+    else{
+      return res.status(403).json({
+        message: "Please login as a customer or admin to view orders.",
+      });
+    }
+    
+    
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch orders.",

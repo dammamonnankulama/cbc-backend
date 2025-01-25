@@ -3,7 +3,6 @@ import Product from "../models/product.js";
 import { isAdmin, isCustomer } from "./userController.js";
 
 export async function createOrder(req, res) {
-  // Check if the user is a customer
   if (!isCustomer(req)) {
     return res.status(403).json({
       message: "Please login as a customer to create orders.",
@@ -11,104 +10,74 @@ export async function createOrder(req, res) {
   }
 
   try {
-    // Fetch the latest orderfor order ID generation
-    let orderId;
+    // Generate a unique orderId
     let latestOrder = await Order.find().sort({ date: -1 }).limit(1);
+    let orderId = latestOrder.length === 0 ? "CBC0001" : generateOrderId(latestOrder[0].orderId);
 
-    if (latestOrder.length === 0) {
-      orderId = "CBC0001";
-    } else {
-      const currentOrderId = latestOrder[0].orderId;
-      const numberString = currentOrderId.replace("CBC", "");
-      const number = parseInt(numberString, 10);
-      let newNumber = (number + 1).toString().padStart(4, "0");
-      orderId = "CBC" + newNumber;
-    }
-
-    // Ensure that the orderId doesn't already exist in the database
-    let orderExists = await Order.findOne({ orderId });
-    while (orderExists) {
-      // If the orderId exists, increment the number and check again
-      const currentOrderId = orderId.replace("CBC", "");
-      const number = parseInt(currentOrderId, 10);
-      let newNumber = (number + 1).toString().padStart(4, "0");
-      orderId = "CBC" + newNumber;
-      orderExists = await Order.findOne({ orderId });
-    }
-
-    // Prepare the new order data
+    // Validate and process ordered items
     const newOrderData = req.body;
-
-    // Initialize an empty array to store the new products
     const newProductArray = [];
 
-    /* function that processes an order by validating and transforming the ordered items. 
-        It starts by initializing an empty array called newProductArray, */
+    for (let item of newOrderData.orderedItems) {
+      const product = await Product.findOne({ productId: item.productId });
 
-    for (let i = 0; i < newOrderData.orderedItems.length; i++) {
-      const product = await Product.findOne({
-        productId: newOrderData.orderedItems[i].productId,
-      });
       if (!product) {
         return res.status(404).json({
-          message: `Product with id ${newOrderData.orderedItems[i].productId} not found.`,
+          message: `Product with ID ${item.productId} not found.`,
         });
       }
-      //code for check the product Stock
-      const orderedQuantity = newOrderData.orderedItems[i].qty;
 
-      if (product.stock < orderedQuantity) {
+      if (product.stock < item.qty) {
         return res.status(400).json({
           message: `Product ${product.productName} is out of stock.`,
         });
       }
-      // Update the stock of the product
-      product.stock -= orderedQuantity;
+
+      // Update product stock
+      product.stock -= item.qty;
       await product.save();
 
-      // // Check if the stock is below the lowStockAlert
-      if (product.stock < product.lowStockAlert) {
-        // Send an email to the admin
-        console.log(
-          `Product ${product.productName} is below the low stock alert.`
-        );
+      // Add validated product to the array
+      newProductArray.push({
+        name: product.productName,
+        price: product.lastPrice,
+        qty: item.qty,
+        image: product.productImages[0],
+      });
 
-        /* Use push when adding to newProductArray because it ensures a clean and sequential 
-                array of products without any gaps. */
-        newProductArray.push({
-          name: product.productName,
-          price: product.lastPrice,
-          qty: orderedQuantity,
-          image: product.productImages[0],
-        });
+      // Trigger low stock alert if needed
+      if (product.stock < product.lowStockAlert) {
+        console.log(`Product ${product.productName} is below the low stock alert.`);
       }
     }
 
-    console.log(newProductArray);
-
+    // Update the order data
     newOrderData.orderedItems = newProductArray;
     newOrderData.orderId = orderId;
     newOrderData.email = req.user.email;
 
-    // Save the new order
+    // Save the order
     const order = new Order(newOrderData);
+    const savedOrder = await order.save();
 
-
-    const savedOrder =await order.save();
-
-    // Respond with success message
     return res.status(201).json({
       message: "Order created successfully.",
       orderId,
       order: savedOrder,
     });
   } catch (error) {
-    // Catch and respond with any error
     return res.status(500).json({
       message: "Failed to create order.",
       error: error.message,
     });
   }
+}
+
+// Helper function to generate unique orderId
+function generateOrderId(currentOrderId) {
+  const numberString = currentOrderId.replace("CBC", "");
+  const number = parseInt(numberString, 10) + 1;
+  return "CBC" + number.toString().padStart(4, "0");
 }
 
 export async function getOrders(req, res) {

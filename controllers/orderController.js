@@ -174,3 +174,44 @@ export async function getQuote(req, res) {
     });
   }
 }
+export async function updateOrder(req, res) {
+  if (!isAdmin(req)) {
+    return res.status(403).json({
+      message: "Please login as an admin to update orders.",
+    });
+  }
+
+  try {
+    const orderId = req.params.orderId;
+    const updatedData = req.body;
+
+    const order = await Order.findOne({ orderId });
+
+    if (!order) {
+      return res.status(404).json({
+        message: `Order with ID ${orderId} not found.`,
+      });
+    }
+
+    if (updatedData.status) {
+      order.status = updatedData.status;
+    }
+
+    if (updatedData.notes) {
+      order.notes = updatedData.notes;
+    }
+
+    const updatedOrder = await order.save();
+
+    return res.status(200).json({
+      message: "Order updated successfully.",
+      order: updatedOrder,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to update order.",
+      error: error.message,
+    });
+  }
+
+}

@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import axios from "axios";
 
 dotenv.config();
 
@@ -142,5 +143,75 @@ export async function findUsers(req, res) {
         console.error("Error in finding users:", err);
         res.status(500).json({ message: "Internal server error" });
     }
+}
+
+export async function googleLogin(req, res) {
+
+  const token =req.body.token;
+
+  try{
+    const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo`,{
+      headers: {
+        Authorization: `Bearer ${token}`
+      } 
+    });
+   const email = response.data.email;
+   //check if the user already exists
+
+   const usersList =await User.find({email: email});
+   
+   if (usersList.length > 0){
+     const user = usersList[0];
+     const token = jwt.sign(
+      {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isBlocked: user.isBlocked,
+        type: user.type,
+        profilePicture: user.profilePicture,
+      },
+      process.env.SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+    return res.json({
+      message: "Logged in successfully",
+      token: token,
+      user: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        type: user.type,
+        profilePicture: user.profilePicture,
+      },
+    });
+   }else{
+      //create a new user
+      const newUser = {
+        email: email,
+        firstName: response.data.given_name,
+        lastName: response.data.family_name,
+        password: "google",
+        type: "customer",
+        profilePicture: response.data.picture
+      }
+      const user = new User(newUser);
+      user.save()
+      .then(() => {
+        res.status(201).json({ message: "User added successfully" });
+      })
+      .catch((err) => {
+        res
+          .status(400)
+          .json({ message: "Failed to add user", error: err.message });
+      });
+   }
+
+
+  }catch(e){
+    res.status(500).json({message: "Google login failed"});
+  }
+
+
 }
 

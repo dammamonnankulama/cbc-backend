@@ -42,7 +42,17 @@ const productSchema = mongoose.Schema({
     lowStockAlert: {
         type: Number,
         default: 20
-    }
+    },
+    reviews: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Review'
+        }
+    ],
+    averageRating: {
+        type: Number,
+        default: 0
+    },
 
 })
 

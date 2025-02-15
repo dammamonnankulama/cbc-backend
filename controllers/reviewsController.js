@@ -2,7 +2,6 @@ import Review from "../models/reviews.js";
 import Order from "../models/order.js"; 
 import Product from "../models/product.js";
 import { isCustomer } from "./userController.js";
-
 import { nanoid } from "nanoid";
 
 
@@ -66,6 +65,21 @@ export async function addReview(req, res) {
       res.status(500).json({ message: "Failed to add review.", error: error.message });
   }
 }
+  
+
+  // Function to get reviews for a product
+  export async function getReviewsForProduct(req, res) {
+    const { productId } = req.params;
+    try {
+      const reviews = await Review.find({ productId });
+      if (reviews.length === 0) {
+        return res.status(404).json({ message: "No reviews found for this product." });
+      }
+      res.status(200).json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching reviews.", error: error.message });
+    }
+  }
   export async function hideReview(req, res) {
     try {
       const { reviewId } = req.params;
@@ -82,19 +96,5 @@ export async function addReview(req, res) {
       res.status(200).json({ message: "Review hidden successfully", review });
     } catch (error) {
       res.status(500).json({ message: "Failed to hide review", error: error.message });
-    }
-  }
-
-  // Function to get reviews for a product
-  export async function getReviewsForProduct(req, res) {
-    const { productId } = req.params;
-    try {
-      const reviews = await Review.find({ productId });
-      if (reviews.length === 0) {
-        return res.status(404).json({ message: "No reviews found for this product." });
-      }
-      res.status(200).json(reviews);
-    } catch (error) {
-      res.status(500).json({ message: "Error fetching reviews.", error: error.message });
     }
   }

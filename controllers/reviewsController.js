@@ -2,21 +2,10 @@ import Review from "../models/reviews.js";
 import Order from "../models/order.js"; 
 import Product from "../models/product.js";
 import { isCustomer } from "./userController.js";
-import { v4 as uuidv4 } from "uuid";
-import Counter from "../models/counter.js";
+
+import { nanoid } from "nanoid";
 
 
-async function getNextReviewId() {
-  const counter = await Counter.findOneAndUpdate(
-      { name: "reviewId" },
-      { $inc: { value: 1 } },
-      { new: true, upsert: true }
-  );
-  if (!counter || !counter.value) {
-      throw new Error("Failed to generate unique review ID.");
-  }
-  return `REV${String(counter.value).padStart(6, "0")}`; // e.g., REV000001
-}
 export async function addReview(req, res) {
   try {
       const userEmail = req.user.email;
@@ -55,8 +44,8 @@ export async function addReview(req, res) {
           return res.status(400).json({ message: "You have already reviewed this product." });
       }
 
-      // Generate unique review ID
-      const reviewId = await getNextReviewId();
+      // Generate a unique review ID using nanoid
+      const reviewId = `REV${nanoid(8)}`; // Example: REV-aBc123Xy
 
       // Create and save the review
       const newReview = new Review({

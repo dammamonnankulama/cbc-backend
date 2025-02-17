@@ -1,11 +1,11 @@
 import express from "express";
-import {addReview, hideReview,getReviewsForProduct } from "../controllers/reviewsController.js";
+import {addReview,getReviewsForProduct, deleteReview } from "../controllers/reviewsController.js";
 import { isCustomer } from "../controllers/userController.js";
 
 const reviewsRouter = express.Router();
 
 reviewsRouter.post("/", addReview)
-reviewsRouter.patch("/hide/:reviewId", hideReview);
+reviewsRouter.delete("/delete/:reviewId", deleteReview);
 reviewsRouter.get("/:productId", getReviewsForProduct);
 
 

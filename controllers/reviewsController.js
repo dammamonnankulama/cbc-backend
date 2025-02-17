@@ -80,21 +80,18 @@ export async function addReview(req, res) {
       res.status(500).json({ message: "Error fetching reviews.", error: error.message });
     }
   }
-  export async function hideReview(req, res) {
+  export async function deleteReview(req, res) {
     try {
       const { reviewId } = req.params;
       
-      // Find the review and hide it (set hidden to true)
-      const review = await Review.findOne({ reviewId });
+      // Find and delete the review
+      const review = await Review.findOneAndDelete({ reviewId });
       if (!review) {
         return res.status(404).json({ message: "Review not found" });
       }
   
-      review.hidden = true;
-      await review.save();
-  
-      res.status(200).json({ message: "Review hidden successfully", review });
+      res.status(200).json({ message: "Review deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to hide review", error: error.message });
+      res.status(500).json({ message: "Failed to delete review", error: error.message });
     }
   }

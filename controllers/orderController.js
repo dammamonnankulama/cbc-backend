@@ -39,6 +39,7 @@ export async function createOrder(req, res) {
 
       // Add validated product to the array
       newProductArray.push({
+        productId: item.productId,
         name: product.productName,
         price: product.lastPrice,
         qty: item.qty,

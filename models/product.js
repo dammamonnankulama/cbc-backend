@@ -42,7 +42,8 @@ const productSchema = mongoose.Schema({
     lowStockAlert: {
         type: Number,
         default: 20
-    }
+    },
+   
 
 })
 

@@ -9,40 +9,50 @@ dotenv.config();
 export function createUser(req, res) {
   const newUserData = req.body;
 
-  //creating a block for "Only admin users can create admin users"
+  // Extract the token from the request header
+  const token = req.header('Authorization')?.replace('Bearer ', '');
 
-  if (newUserData.type == "admin") {
-    if (req.user == null || req.user.type != "admin") {
-      const message =
-        req.user == null
-          ? "Unauthorized! Login as an admin to create an admin user"
-          : "Unauthorized! Only admin users can create admin users";
-      res.json({ message: message });
-      return;
-    }
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided. Unauthorized' });
+  }
+  if (!newUserData.email || !newUserData.password || !newUserData.firstName || !newUserData.lastName) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
-  // Hashing
-  // Hash the password before saving
-  newUserData.password = bcrypt.hashSync(newUserData.password, 10);
+  // Verify the JWT token
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);  // Use the correct JWT secret
 
-  const user = new User(newUserData);
-
-  user
-    .save()
-    .then(() => {
-      res.status(201).json({ message: "User added successfully" });
-    })
-    .catch((err) => {
-      // Check if the error is a duplicate key error
-      if (err.code === 11000) {
-        res.status(400).json({ message: "Email already exists!" });
-      } else {
-        res
-          .status(400)
-          .json({ message: "Failed to add user", error: err.message });
+    // Check if the user making the request is an admin
+    if (newUserData.type === 'admin') {
+      if (decoded.type !== 'admin') {
+        return res.status(403).json({
+          message: 'Unauthorized! Only admin users can create admin users',
+        });
       }
-    });
+    }
+
+    // Hash the password before saving
+    newUserData.password = bcrypt.hashSync(newUserData.password, 10);
+
+    const user = new User(newUserData);
+
+    user
+      .save()
+      .then(() => {
+        res.status(201).json({ message: 'User added successfully' });
+      })
+      .catch((err) => {
+        // Check for duplicate email
+        if (err.code === 11000) {
+          return res.status(400).json({ message: 'Email already exists!' });
+        }
+        res.status(400).json({ message: 'Failed to add user', error: err.message });
+      });
+
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
 }
 
 export function loginUser(req, res) {
@@ -53,6 +63,9 @@ export function loginUser(req, res) {
       if (!user) {
         // Avoid exposing whether the issue is email or password
         return res.status(401).json({ message: "Invalid email or password" });
+      }
+      if (user.isBlocked) {
+        return res.status(403).json({ message: "Your account has been blocked. Contact support." });
       }
 
       // Check password
@@ -114,6 +127,21 @@ export async function getUser(req,res) {
     }
     res.json(req.user);
     
+}
+export function authenticateUser(req, res, next) {
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided. Unauthorized" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    req.user = decoded; // Attach user data to `req`
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
 }
 
 
@@ -208,10 +236,55 @@ export async function googleLogin(req, res) {
    }
 
 
-  }catch(e){
-    res.status(500).json({message: "Google login failed"});
+  }catch (e) {
+    console.error("Google login error:", e.response?.data || e.message);
+    res.status(500).json({ message: "Google login failed", error: e.message });
   }
 
 
+}
+
+export async function toggleBlockUser(req, res) {
+  const { userId } = req.params;
+
+  // Extract token from headers
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided. Unauthorized" });
+  }
+
+  try {
+    // Verify the JWT token
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
+    // Only admins can block/unblock users
+    if (decoded.type !== "admin") {
+      return res.status(403).json({ message: "Unauthorized! Only admins can modify user status." });
+    }
+
+    // Find user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Prevent blocking another admin
+    if (user.type === "admin") {
+      return res.status(403).json({ message: "Cannot block/unblock an admin" });
+    }
+
+    // Toggle block status
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+
+    return res.status(200).json({ 
+      message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`,
+      user 
+    });
+
+  } catch (err) {
+    return res.status(500).json({ message: "Internal server error", error: err.message });
+  }
 }
 

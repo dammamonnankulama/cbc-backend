@@ -39,6 +39,11 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    category: {
+        type: String,
+        required: true, 
+        enum: ["makeup", "hair-body", "skin-care"] 
+    },
     lowStockAlert: {
         type: Number,
         default: 20

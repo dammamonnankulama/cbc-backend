@@ -101,3 +101,17 @@ export async function searchProducts(req, res) {
       .json({ message: "Product not found", error: error.message });
   }
 }
+export async function getProductsByCategory(req, res) {
+  try {
+    const category = req.params.category;
+    const products = await Product.find({ category: category });
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: "No products found in this category" });
+    }
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching products", error: error.message });
+  }
+}

@@ -48,9 +48,12 @@ const productSchema = mongoose.Schema({
         type: Number,
         default: 20
     },
+    
+   },{
+         timestamps: true
+   }
    
-
-})
+);
 
 const Product = mongoose.model("products", productSchema);
 

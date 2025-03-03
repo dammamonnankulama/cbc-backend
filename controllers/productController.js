@@ -115,3 +115,16 @@ export async function getProductsByCategory(req, res) {
     res.status(500).json({ message: "Error fetching products", error: error.message });
   }
 }
+export function getLatestProducts(req, res) {
+  Product.find()
+    .sort({ createdAt: -1 })  // Sort by 'createdAt' in descending order
+    .then((products) => {
+      res.json(products);
+    })
+    .catch((err) => {
+      res.status(500).json({ message: 'Error fetching products', error: err });
+    });
+}
+
+
+

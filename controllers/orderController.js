@@ -216,3 +216,67 @@ export async function updateOrder(req, res) {
   }
 
 }
+
+
+export async function getTrendingProducts(req, res) {
+  try {
+    // Define the time period for determining trends (e.g., last 30 days)
+    const periodInDays = 30;
+    const currentDate = new Date();
+    const dateLimit = new Date(currentDate.setDate(currentDate.getDate() - periodInDays));
+
+    // Get all orders from the last 30 days (or a custom period)
+    const orders = await Order.find({
+      date: { $gte: dateLimit },
+    });
+
+    if (!orders.length) {
+      return res.status(404).json({
+        message: "No orders found in the given timeframe.",
+      });
+    }
+
+    // Create an object to store product frequencies
+    const productFrequency = {};
+
+    // Loop through orders and calculate product frequencies
+    orders.forEach((order) => {
+      order.orderedItems.forEach((item) => {
+        if (productFrequency[item.productId]) {
+          productFrequency[item.productId] += item.qty;
+        } else {
+          productFrequency[item.productId] = item.qty;
+        }
+      });
+    });
+
+    // Get product details and calculate total sold quantity for each product
+    const trendingProducts = [];
+    for (const productId in productFrequency) {
+      const product = await Product.findOne({ productId });
+      if (product) {
+        trendingProducts.push({
+          productId,
+          productName: product.productName,
+          price: product.lastPrice,
+          image: product.productImages[0], // Assuming `productImages` is an array
+          totalSold: productFrequency[productId],
+        });
+      }
+    }
+
+    // Sort trending products by total sold quantity in descending order
+    trendingProducts.sort((a, b) => b.totalSold - a.totalSold);
+
+    // Return the trending products
+    res.status(200).json({
+      message: "Trending products fetched successfully.",
+      trendingProducts,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch trending products.",
+      error: error.message,
+    });
+  }
+}

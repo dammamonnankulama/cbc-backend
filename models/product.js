@@ -35,6 +35,10 @@ const productSchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    discount: {
+        type: Number,
+        default: 0, // Discount in percentage (0-100)
+      },
     description: {
         type: String,
         required: true

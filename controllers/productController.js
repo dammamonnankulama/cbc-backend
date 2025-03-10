@@ -126,5 +126,17 @@ export function getLatestProducts(req, res) {
     });
 }
 
+// Get Best Discounted Products
+export const getBestDiscountProducts = async (req, res) => {
+  try {
+    // Find products with a discount greater than 0, sorted by highest discount first
+    const products = await Product.find({ discount: { $gt: 0 } })
+      .sort({ discount: -1 })
+      .limit(10); // Limit to top 10 best discounts
 
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
 

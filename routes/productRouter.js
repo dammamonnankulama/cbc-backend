@@ -1,5 +1,5 @@
 import express from "express";
-import {createProduct,getProducts,deleteProduct, updateProduct, getProductById, searchProducts,getProductsByCategory, getLatestProducts } from "../controllers/productController.js";
+import {createProduct,getProducts,deleteProduct, updateProduct, getProductById, searchProducts,getProductsByCategory, getLatestProducts, getBestDiscountProducts } from "../controllers/productController.js";
 
 const productRouter = express.Router();
 
@@ -11,6 +11,7 @@ productRouter.get("/latest", getLatestProducts);
 productRouter.get("/:productId",getProductById);
 productRouter.get("/search/:query",searchProducts);
 productRouter.get("/category/:category", getProductsByCategory);
+productRouter.get("/best-discounts", getBestDiscountProducts);
 
 
 export default productRouter;

@@ -8,10 +8,11 @@ productRouter.get("/",getProducts);
 productRouter.delete("/:productId",deleteProduct);
 productRouter.put("/:productId",updateProduct);
 productRouter.get("/latest", getLatestProducts);
+productRouter.get("/best-discounts", getBestDiscountProducts);
 productRouter.get("/:productId",getProductById);
 productRouter.get("/search/:query",searchProducts);
 productRouter.get("/category/:category", getProductsByCategory);
-productRouter.get("/best-discounts", getBestDiscountProducts);
+
 
 
 export default productRouter;

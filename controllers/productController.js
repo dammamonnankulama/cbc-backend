@@ -129,14 +129,22 @@ export function getLatestProducts(req, res) {
 // Get Best Discounted Products
 export const getBestDiscountProducts = async (req, res) => {
   try {
-    // Find products with a discount greater than 0, sorted by highest discount first
-    const products = await Product.find({ discount: { $gt: 0 } })
-      .sort({ discount: -1 })
-      .limit(10); // Limit to top 10 best discounts
+    // Fetch products, calculating the price difference (price - lastPrice) and sorting by both:
+    const products = await Product.find()
+      .where("price").gt(0) // Ensure there’s a price (greater than 0)
+      .where("lastPrice").gt(0) // Ensure lastPrice is greater than 0 (avoid negative results)
+      .sort({ 
+        discount: -1,  // Highest discount first
+        "price": -1, // Highest price difference first
+      })
+      .limit(10); // Top 10 products with highest discount and price difference
 
-    res.status(200).json(products);
+    console.log("Backend: High Discount and Price Difference Products", products); // Debugging
+    res.json(products);
   } catch (error) {
-    res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Error fetching products:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 

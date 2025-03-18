@@ -35,17 +35,29 @@ const productSchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    discount: {
+        type: Number,
+        default: 0, // Discount in percentage (0-100)
+      },
     description: {
         type: String,
         required: true
+    },
+    category: {
+        type: String,
+        required: true, 
+        enum: ["makeup", "hair", "skin-care","body","perfume","tools","nails"] 
     },
     lowStockAlert: {
         type: Number,
         default: 20
     },
+    
+   },{
+         timestamps: true
+   }
    
-
-})
+);
 
 const Product = mongoose.model("products", productSchema);
 

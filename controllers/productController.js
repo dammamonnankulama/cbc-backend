@@ -101,3 +101,50 @@ export async function searchProducts(req, res) {
       .json({ message: "Product not found", error: error.message });
   }
 }
+export async function getProductsByCategory(req, res) {
+  try {
+    const category = req.params.category;
+    const products = await Product.find({ category: category });
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: "No products found in this category" });
+    }
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching products", error: error.message });
+  }
+}
+export function getLatestProducts(req, res) {
+  Product.find()
+    .sort({ createdAt: -1 })  // Sort by 'createdAt' in descending order
+    .then((products) => {
+      res.json(products);
+    })
+    .catch((err) => {
+      res.status(500).json({ message: 'Error fetching products', error: err });
+    });
+}
+
+// Get Best Discounted Products
+export const getBestDiscountProducts = async (req, res) => {
+  try {
+    // Fetch products, calculating the price difference (price - lastPrice) and sorting by both:
+    const products = await Product.find()
+      .where("price").gt(0) // Ensure there’s a price (greater than 0)
+      .where("lastPrice").gt(0) // Ensure lastPrice is greater than 0 (avoid negative results)
+      .sort({ 
+        discount: -1,  // Highest discount first
+        "price": -1, // Highest price difference first
+      })
+      .limit(10); // Top 10 products with highest discount and price difference
+
+    console.log("Backend: High Discount and Price Difference Products", products); // Debugging
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+

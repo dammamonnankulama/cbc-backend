@@ -9,50 +9,44 @@ dotenv.config();
 export function createUser(req, res) {
   const newUserData = req.body;
 
-  // Extract the token from the request header
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided. Unauthorized' });
-  }
+  // Ensure required fields are present
   if (!newUserData.email || !newUserData.password || !newUserData.firstName || !newUserData.lastName) {
-    return res.status(400).json({ message: "Missing required fields" });
+    return res.status(400).json({ message: 'Missing required fields' });
   }
 
-  // Verify the JWT token
-  try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);  // Use the correct JWT secret
-
-    // Check if the user making the request is an admin
-    if (newUserData.type === 'admin') {
-      if (decoded.type !== 'admin') {
-        return res.status(403).json({
-          message: 'Unauthorized! Only admin users can create admin users',
-        });
-      }
+  // If creating an admin, require authentication
+  if (newUserData.type === 'admin') {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided. Unauthorized' });
     }
 
-    // Hash the password before saving
-    newUserData.password = bcrypt.hashSync(newUserData.password, 10);
-
-    const user = new User(newUserData);
-
-    user
-      .save()
-      .then(() => {
-        res.status(201).json({ message: 'User added successfully' });
-      })
-      .catch((err) => {
-        // Check for duplicate email
-        if (err.code === 11000) {
-          return res.status(400).json({ message: 'Email already exists!' });
-        }
-        res.status(400).json({ message: 'Failed to add user', error: err.message });
-      });
-
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    try {
+      const decoded = jwt.verify(token, process.env.SECRET_KEY);
+      if (decoded.type !== 'admin') {
+        return res.status(403).json({
+          message: 'Unauthorized! Only admin users can create admin accounts',
+        });
+      }
+    } catch (err) {
+      return res.status(401).json({ message: 'Invalid or expired token', error: err.message });
+    }
   }
+
+  // Hash password
+  newUserData.password = bcrypt.hashSync(newUserData.password, 10);
+
+  // Save user to database
+  const user = new User(newUserData);
+  user
+    .save()
+    .then(() => res.status(201).json({ message: 'User added successfully' }))
+    .catch((err) => {
+      if (err.code === 11000) {
+        return res.status(400).json({ message: 'Email already exists!' });
+      }
+      res.status(500).json({ message: 'Failed to add user', error: err.message });
+    });
 }
 
 export function loginUser(req, res) {

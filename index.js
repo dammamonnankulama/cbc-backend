@@ -7,6 +7,7 @@ import orderRouter from './routes/orderRouter.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import reviewsRouter from './routes/reviewsRouter.js';
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.use("/api/users",userRouter)
 
 //use orderRouter
 app.use("/api/orders",orderRouter)
+
 
 
 

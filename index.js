@@ -60,6 +60,8 @@ app.use("/api/users",userRouter)
 //use orderRouter
 app.use("/api/orders",orderRouter)
 
+//use reviewsRouter
+app.use("/api/reviews",reviewsRouter)
 
 
 
